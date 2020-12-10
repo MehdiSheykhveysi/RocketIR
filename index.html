@@ -1,0 +1,542 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/index.css">
+</head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    .border-dark {
+        border: 1px solid rgba(18, 17, 17, 0.4);
+    }
+
+    .no-border {
+        border: 0px;
+    }
+
+    .no-outline {
+        outline: 0px;
+    }
+
+    .p-1 {
+        padding: 1rem;
+    }
+</style>
+
+<body>
+
+    <div class="panel panel-default" id="App">
+        <div class="panel-heading">
+            <span class="title">مدیریت آزمون ها</span>
+        </div>
+        <div class="panel-body">
+
+            <div class="row">
+                <div class="row" style="padding: 0 1.5rem 0 0rem">
+                    <div class="col-lg-8 col-sm-6" style="margin-top: 2px">
+                        <div class="btn-group">
+                            <button class="btn btn-primary">اضافه کردن بخش</button>
+                            <button class="btn btn-primary">فایل ضمیمه</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6" style="border-left: 1px solid #c4b4b4; margin:2px 0">
+                        <div class="btn-group">
+                            <button class="btn btn-primary">ذخیره</button>
+                            <button class="btn btn-primary">بازکردن</button>
+                            <button class="btn btn-primary">جدید</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin: 2rem 0 2rem 2rem;">
+                    <div class="col-lg-9">
+                        <exam-section v-for="(section,index) in exam.Sections" :key="index"
+                            :question-types="allQuestionTypes" :section-info="section">
+                        </exam-section>
+                    </div>
+                    <div class="col-lg-3" style="padding:0px">
+                        <div class="form-group">
+
+                            <div class="form-group has-success">
+                                <div class="col-lg-12">
+                                    <input type="text" v-model="exam.ExamTitle" placeholder="عنوان آزمون"
+                                        class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-group has-success">
+                                <div class="col-lg-12">
+                                    <select class="form-control text-center" v-model="exam.ExamType">
+                                        <option :value="null" class="small text-small">نوع آزمون را مشخص کنید</option>
+                                        <option v-for="(type,index) in examTypes" :value="type.Value"
+                                            :selected="type.Value === exam.ExamType" :key="index">{{type.Text}}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!--
+                            <div class="form-group has-success">
+                            <div class="col-lg-12">
+                                <input type="text" placeholder="عنوان" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group has-success">
+                            <div class="col-lg-12">
+                                <textarea rows="3" placeholder="عنوان" class="form-control"></textarea>
+                            </div>
+                        </div>
+                            -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3 text-center" style="border-right: 1px solid #c4b4b4;">
+                        <div class="btn-group">
+                            <button class="btn btn-primary">طراحی</button>
+                            <button class="btn btn-primary">نمایش</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/template" id="examSection">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div class="btn-group">
+                <button class="btn btn-primary" @@click="ShowModal">مشخصات</button>
+                <button class="btn btn-primary">اضافه کردن Block جدید</button>
+                <button class="btn btn-primary"><i class="fa fa-arrow-up"></i></button>
+                <button class="btn btn-primary"><i class="fa fa-arrow-down"></i></button>
+                <button class="btn btn-primary">Section</button>
+            </div>
+        </div>
+        <div class="col-lg-12" style="padding:1rem 0 1rem 0">
+            <exam-question-block v-for="(questionBlock,index) in sectionInfo?.QuestionBlocks" :key="index" :question-types="questionTypes" :block-info="questionBlock">
+            </exam-question-block>
+        </div>
+
+        <modal v-if="sectionDetail" :header="'نمایش جزئیات Section'" v-on:close="CloseModal">
+            <div class="row">
+                <div class="col-lg-12" style="padding: 1.5rem 1.5rem 1.5rem 0">
+                    <div class="form-group">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="label label-default">عنوان Section</label>
+                                <input type="text" v-model="sectionDetail.Title" placeholder="عنوان بخش" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="label label-default">جزئیات Section</label>
+                                <textarea v-model="sectionDetail.Description" rows="6" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </modal>
+    </div>
+</script>
+
+    <script type="text/template" id="examQuestionBlock">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div class="btn-group" style="padding: 0 1.5rem 0 0">
+                <button class="btn btn-primary" @@click="ShowBModal">مشخصات</button>
+                <button class="btn btn-primary">اضافه کردن سوال جدید</button>
+                <button class="btn btn-primary"><i class="fa fa-arrow-up"></i></button>
+                <button class="btn btn-primary"><i class="fa fa-arrow-down"></i></button>
+                <button class="btn btn-primary">QuestionBlock</button>
+            </div>
+            <!--
+            <div class="col-lg-12" style="padding: 1.5rem 0 1.5rem 0">
+                <div class="form-group">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="label label-default">عنوان سوال</label>
+                            <input type="text" placeholder="عنوان" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="label label-default">متن سوال</label>
+                            <textarea rows="3" placeholder="متن سوال" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label class="label label-default">توضیحات سوال</label>
+                            <textarea rows="3" placeholder="توضیحات" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            -->
+            <div class="col-lg-12" style="padding: 1.5rem 1.5rem 1.5rem 0">
+                <block-question v-for="(question,index) in BlockInfo.Questions" :question-types="questionTypes" :key="index" :question-info="question">
+                </block-question>
+            </div>
+        </div>
+        <modal v-if="qBlockDetail" :header="'نمایش جزئیات Question Block'" v-on:close="CloseBModal">
+            <div class="row">
+                <div class="col-lg-12" style="padding: 1.5rem 1.5rem 1.5rem 0">
+                    <div class="form-group">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="label label-default">عنوان Question Block</label>
+                                <input type="text" v-model="qBlockDetail.Title" placeholder="عنوان بخش" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="label label-default">متن سوال</label>
+                                <textarea v-model="qBlockDetail.QuestionText" rows="6" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="label label-default">جزئیات Question Block</label>
+                                <textarea v-model="qBlockDetail.Description" rows="6" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </modal>
+    </div>
+</script>
+
+    <script type="text/template" id="blockQuestion">
+    <div class="row">
+        <div class="">
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label class="label label-default">شماره سوال</label>
+                    <input type="text" v-model="questionDetail.Number" placeholder="شماره سوال" class="form-control" />
+                </div>
+
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label class="label label-default">امتیاز</label>
+                    <input type="text" v-model="questionDetail.Point" placeholder="امتیاز" class="form-control" />
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label class="label label-default">انتخاب نوع سوال</label>
+                    <select class="form-control text-left">
+                        <option v-for="item in questionTypes" :value="item">{{item}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="form-group">
+                    <label class="label label-default">انتخاب گزینه صحیح</label>
+                    <select class="form-control text-right" v-model="questionDetail.CorrectAnswers" :multiple="true">
+                        <option v-for="(choice , index) in questionInfo?.questionDetail?.Choices" :key="index" :value="choice.ChoiceText">{{choice?.ChoiceText}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!---->
+
+        <div class="col-lg-12">
+            <div class="row">
+                <div class="col-lg-12">
+                    <button class="btn btn-sm btn-success">افزودن گزینه</button>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="متن گزینه" />
+                    </div>
+                </div>
+                <question-choice></question-choice>
+                <question-choice></question-choice>
+            </div>
+        </div>
+    </div>
+</script>
+
+    <script type="text/template" id="questionChoice">
+    <div class="form-group">
+        <div class="col-lg-6">
+            <div class="form-group">
+                <input type="text" placeholder="گزینه اول" class="form-control">
+            </div>
+        </div>
+    </div>
+
+</script>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script>
+        var examTypes = [{
+            "Text": 1,
+        }, {
+            "Text": 2,
+        }, {
+            "Text": 3,
+        }];
+        var allQuestionTypes = [{
+            "Text": 1,
+        }, {
+            "Text": 2,
+        }, {
+            "Text": 3,
+        }];
+
+        Vue.component('modal', {
+            props: ["header"],
+            template: `<!-- The Modal -->
+                        <transition name="fade">
+                           <div class="modal bd-example-modal-lg" id="myModal" style="display: block;">
+
+                                      <div class="modal-dialog  modal-lg">
+
+                                        <div class="modal-content">
+
+                                          <!-- Modal Header -->
+
+                                          <div class="modal-header text-center">
+                                            <button type="button" class="close" v-on:click="$emit('close')" data-dismiss="modal">×</button>
+
+                                            <h6 class="modal-title km-dialog-title">{{header}}</h6>
+                                          </div>
+
+                                          <!-- Modal body -->
+
+                                          <div class="modal-body">
+
+                                            <slot></slot>
+
+                                           <!-- Modal footer
+                                          <div class="modal-footer">
+                                              <slot name="footer">
+                                              </slot>
+                                          </div>
+                                           -->
+                                          </div>
+
+
+                                        </div>
+
+                                      </div>
+
+                                    </div>
+                          </transition>`
+        });
+        Vue.component('exam-section', {
+            props: {
+                sectionInfo: {
+                    type: Object
+                },
+                questionTypes: {
+                    type: Array
+                },
+            },
+            data() {
+                return {
+                    sectionDetail: null
+                }
+            },
+            template: '#examSection',
+            methods: {
+                ShowModal() {
+                    this.sectionDetail = this.sectionInfo;
+                },
+                CloseModal() {
+                    this.sectionDetail = null;
+                }
+            }
+        });
+        Vue.component('exam-question-block', {
+            template: '#examQuestionBlock',
+            props: {
+                BlockInfo: {
+                    type: Object
+                },
+                questionTypes: {
+                    type: Array
+                },
+            },
+            data() {
+                return {
+                    qBlockDetail: null
+                }
+            },
+            methods: {
+                ShowBModal() {
+                    this.qBlockDetail = this.BlockInfo;
+                },
+                CloseBModal() {
+                    this.qBlockDetail = null;
+                }
+            }
+        });
+        Vue.component('block-question', {
+            template: '#blockQuestion',
+            props: {
+                questionInfo: {
+                    type: Object
+                },
+                questionTypes: {
+                    type: Array
+                },
+            },
+            data() {
+                return {
+                    questionDetail: null,
+                }
+            },
+            created() {
+                this.questionDetail = this.questionInfo;
+            },
+        });
+
+        Vue.component('question-choice', {
+            template: '#questionChoice'
+        });
+        Vue.component('doller-input', {
+            props: ["value"],
+            template: `
+                        <div>
+                            <input type="text" style="direction: initial;" class="form-control" v-model="displayValue" v-on:blur="isInputActive = false" v-on:focus="isInputActive = true"/>
+                        </div>`,
+            data: function () {
+                return {
+                    isInputActive: false
+                }
+            },
+            computed: {
+                displayValue: {
+                    get: function () {
+                        if (this.isInputActive) {
+                            // Cursor is inside the input field. unformat display value for user
+                            return this.value.toString()
+                        } else {
+                            // User is not modifying now. Format display value for user interface
+                            return "$ " + this.value.toFixed(2).replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, "$1,")
+                        }
+                    },
+                    set: function (modifiedValue) {
+                        // Recalculate value after ignoring "$" and "," in user input
+                        let newValue = parseFloat(modifiedValue.replace(/[^\d\.]/g, ""))
+                        // Ensure that it is not NaN
+                        if (isNaN(newValue)) {
+                            newValue = 0
+                        }
+                        // Note: we cannot set this.value as it is a "prop". It needs to be passed to parent component
+                        // $emit the event so that parent component gets it
+                        this.$emit('input', newValue)
+                    }
+                }
+            }
+        });
+        Vue.component('decimal-input', {
+            props: {
+                value: {
+                    type: Number,
+                    default: 0,
+                    required: true
+                }
+            },
+            template: `<div>
+                            <input type="text" style="direction: initial;" class="form-control" v-model="price" />
+                       </div>`,
+            data: function () {
+                return {
+                    price: 0
+                }
+            },
+            created() {
+                this.price = this.value;
+            },
+            watch: {
+                price: function (newValue) {
+                    const result = newValue.toString().replace(/\D/g, "")
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    Vue.nextTick(() => this.price = result);
+                    this.$emit('input', parseInt(newValue.toString().replace(/,/g, '')));
+                }
+            }
+        });
+
+        Vue.directive('tooltip', function (el, binding) {
+            $(el).tooltip({
+                title: binding.value,
+                placement: binding.arg,
+                trigger: 'hover'
+            })
+        });
+
+        const promotion = new Vue({
+            el: "#App",
+            components: {
+            },
+            data: {
+                examTypes: examTypes,
+                allQuestionTypes: allQuestionTypes,
+                exam: {
+                    ExamTitle: null,
+                    ExamType: null,
+                    ExamTypeName: null,
+                    Sections: [{
+                        Title: 'section test1 ',
+                        Description: 'section test 1 description',
+                        QuestionBlocks: [{
+                            Title: 'QuestionBlocks 1',
+                            Description: 'QuestionBlocks 1 Description Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                            QuestionText: 'QuestionBlocks 1 QuestionText',
+                            Questions: [{
+                                Number: 1,
+                                QuestionType: null,
+                                ChoiceShowType: null,
+                                CorrectAnswers: [],
+                                Point: 0,
+                                Choices: [{
+                                    ChoiceText: 'choice 1',
+                                    SelctedByStudentAsAnswer: false
+                                }]
+                            }]
+                        }]
+                    }]
+                },
+            },
+            watch: {
+                'exam.ExamType': function (val) {
+                    this.exam.ExamTypeName = this.examTypes.find(e => e.Value === val)?.Text;
+                }
+            },
+            created() {
+            },
+            computed: {
+            },
+            methods: {
+            }
+        });
+    </script>
+
+</body>
+
+</html>

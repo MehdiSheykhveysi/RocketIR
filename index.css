@@ -1,0 +1,41 @@
+html {
+  direction: rtl;
+}
+.checkbox {
+  position: relative;
+  padding: 0 1.1rem 0 0;
+}
+.checkbox input {
+  display: none;
+}
+
+.checkmark::after {
+  content: "";
+  border: white solid;
+  position: absolute;
+  width: 5px;
+  height: 7px;
+  top: 4px;
+  right: 4.5px;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg);
+  display: none;
+}
+.checkbox .checkmark {
+  background-color: #eeeeee;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  position: absolute;
+  right: 0;
+  top: 0;
+  border-radius: 5px;
+}
+.checkbox input:checked ~ .checkmark {
+  background: #28abb9;
+  display: block;
+}
+.checkbox input:checked ~ .checkmark::after {
+  display: initial;
+}
